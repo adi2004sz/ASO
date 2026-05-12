@@ -50,8 +50,8 @@ pipeline {
             }
             steps {
                 echo 'Deployment step placeholder.'
-                echo 'If you have a VPS, add your deployment scripts (e.g., scp/ssh) here.'
-                // TODO: Add deployment logic
+                echo 'SIMULARE ESEC BUILD: Urmatoarea comanda va pica automat.'
+                sh 'exit 1' // Aceasta comanda forteaza terminalul sa dea eroare (Exit Code 1)
             }
         }
     }
