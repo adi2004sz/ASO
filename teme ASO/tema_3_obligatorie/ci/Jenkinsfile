@@ -21,22 +21,25 @@ pipeline {
         stage('Build Artifacts') {
             steps {
                 echo 'Building .NET Core Application...'
-                // Restoring dependencies and publishing the .NET application
-                // We output the build to the 'artifacts' directory
-                sh 'dotnet restore'
-                sh 'dotnet publish TodoApp.csproj -c Release -o ./artifacts'
+                // Modificat pentru a intra in subfolderul unde e codul sursa efectiv
+                dir('teme ASO/tema_3_obligatorie') {
+                    sh 'dotnet restore TodoApp.csproj'
+                    sh 'dotnet publish TodoApp.csproj -c Release -o ./artifacts'
+                }
             }
         }
         
         stage('Scan Artifacts (MDSSC)') {
             steps {
                 echo 'Initiating artifact scanning with MDSSC...'
-                // Scanning only the newly built /artifacts directory
-                mdsscScan(
-                    path: 'artifacts', 
-                    failOnVulnerabilities: 'true',
-                    threshold: 'high'
-                )
+                // Scanning only the newly built /artifacts directory din subfolder
+                dir('teme ASO/tema_3_obligatorie') {
+                    mdsscScan(
+                        path: 'artifacts', 
+                        failOnVulnerabilities: 'true',
+                        threshold: 'high'
+                    )
+                }
             }
         }
         
