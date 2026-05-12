@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    
+    // Note: To trigger on push for any branch, you typically configure a GitLab webhook 
+    // pointing to your Jenkins Multibranch Pipeline job.
+
+    stages {
+        stage('Scan Sourcecode (MDSSC)') {
+            steps {
+                echo 'Initiating source code scanning with MDSSC...'
+                // Uses the custom shared library plugin (vars/mdsscScan.groovy)
+                // Assuming credentials 'mdssc-server-url' and 'mdssc-api-key' are configured in Jenkins
+                mdsscScan(
+                    path: '.', 
+                    failOnVulnerabilities: 'true',
+                    threshold: 'medium'
+                )
+            }
+        }
+        
+        stage('Build Artifacts') {
+            steps {
+                echo 'Building .NET Core Application...'
+                // Restoring dependencies and publishing the .NET application
+                // We output the build to the 'artifacts' directory
+                sh 'dotnet restore'
+                sh 'dotnet publish TodoApp.csproj -c Release -o ./artifacts'
+            }
+        }
+        
+        stage('Scan Artifacts (MDSSC)') {
+            steps {
+                echo 'Initiating artifact scanning with MDSSC...'
+                // Scanning only the newly built /artifacts directory
+                mdsscScan(
+                    path: 'artifacts', 
+                    failOnVulnerabilities: 'true',
+                    threshold: 'high'
+                )
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                // Optional: Only run deploy on the main/master branch, adjust as needed
+                branch 'main'
+            }
+            steps {
+                echo 'Deployment step placeholder.'
+                echo 'If you have a VPS, add your deployment scripts (e.g., scp/ssh) here.'
+                // TODO: Add deployment logic
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Clean up workspace after build to save space
+            cleanWs()
+        }
+    }
+}
